@@ -15,10 +15,8 @@ const connectDB = require('./config/db');
 const Chat = require('./models/Chat');
 const Message = require('./models/Message');
 
-// ===========================
-// CONFIGURATION & INITIALIZATION
-// ===========================
 
+// CONFIGURATION & INITIALIZATION
 //  AI Configuration
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
@@ -31,11 +29,11 @@ const loadSystemPrompt = () => {
     const promptPath = path.join(__dirname, 'secure_prompts', 'kartz_system_prompt.txt');
     // Read the file synchronously during server startup
     const promptContent = fs.readFileSync(promptPath, 'utf8');
-    console.log("✅ System Prompt loaded successfully from file.");
+    console.log(" System Prompt loaded successfully from file.");
     return promptContent;
   } catch (err) {
     // Log a critical error and exit if the prompt cannot be loaded
-    console.error("❌ CRITICAL ERROR: Could not load system prompt file.", err);
+    console.error(" CRITICAL ERROR: Could not load system prompt file.", err);
     process.exit(1);
   }
 };
@@ -50,9 +48,9 @@ connectDB();
 const app = express();
 const server = http.createServer(app);
 
-// ===========================
+
 // MIDDLEWARE
-// ===========================
+
 
 // 1. CORS (Cross-Origin Resource Sharing) Configuration
 // Define the list of allowed origins (front-end URLs) that can connect to this backend
@@ -85,10 +83,8 @@ const io = new Server(server, {
   }
 });
 
-// ===========================
-// API ROUTES (RESTful Endpoints)
-// ===========================
 
+// API ROUTES (RESTful Endpoints)
 // Endpoint to retrieve the entire chat history for a specific user
 app.get('/api/chat-history/:uid', async (req, res) => {
   const { uid } = req.params; // Extract the user ID from the URL parameter
@@ -125,22 +121,19 @@ app.get('/api/chat-history/:uid', async (req, res) => {
     }));
 
     // Send the formatted message history back to the client as JSON
-    console.log(`✅ Successfully sent ${formattedMessages.length} historical messages to user ${uid}`);
+    console.log(`Successfully sent ${formattedMessages.length} historical messages to user ${uid}`);
     res.json(formattedMessages);
 
   } catch (error) {
     // Log any errors that occur during the database queries
-    console.error("❌ Error fetching chat history:", error);
+    console.error(" Error fetching chat history:", error);
     // Send a 500 Internal Server Error response
     res.status(500).json({ error: "Internal Server Error fetching history" });
   }
 });
 
 
-// ===========================
 // REAL-TIME CHAT LOGIC (Socket.io)
-// ===========================
-
 // Listen for new client connections
 io.on('connection', (socket) => {
   console.log(`⚡ New client connected: Socket ID ${socket.id}`);
@@ -152,7 +145,7 @@ io.on('connection', (socket) => {
     // Validate essential data fields are present
     // The client is expected to send { uid, email, content, senderName }
     if (!data.uid || !data.email || !data.content) {
-      console.error("❌ Blocked message with missing data (UID, Email, or Content).");
+      console.error(" Blocked message with missing data (UID, Email, or Content).");
       // Optionally emit an error back to the client
       // socket.emit('message_error', { error: 'Missing required data.' });
       return;
@@ -198,7 +191,7 @@ io.on('connection', (socket) => {
       const result = await model.generateContent(fullPrompt);
       const response = await result.response;
       const aiText = response.text();
-      console.log("✅ AI response generated successfully.");
+      console.log(" AI response generated successfully.");
 
 
       // Create a new Message document for the AI's reply
@@ -224,7 +217,7 @@ io.on('connection', (socket) => {
       console.log(`📤 Sent AI reply to client ${socket.id}`);
 
     } catch (error) {
-      console.error("❌ Error in 'send_message' handler:", error);
+      console.error(" Error in 'send_message' handler:", error);
 
       // Send a temporary error message back to the user in case of failure
       // Note: We don't save this error message to the database
@@ -252,4 +245,5 @@ const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
   console.log(`\n🚀 K'artz Backend Server is running on port ${PORT}`);
   console.log(`Create something amazing! ✨\n`);
+
 });
