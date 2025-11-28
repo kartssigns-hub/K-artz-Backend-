@@ -34,13 +34,21 @@ const SYSTEM_PROMPT = loadSystemPrompt();
 const app = express();
 connectDB();
 
-app.use(cors({ origin: process.env.FRONTEND_URL, methods: ["GET", "POST"] }));
+const allowedOrigins = [
+  "http://localhost:8080",         // Local development
+  "http://localhost:5173",         // Alternative local development
+  "https://k-artz-app.vercel.app", // Old Vercel domain (optional to keep)
+  "https://www.kartzsignage.com",  // <-- NEW: Your custom domain (www version)
+  "https://kartzsignage.com"       // <-- NEW: Your custom domain (root version)
+];
+
+app.use(cors({ origin:allowedOrigins , methods: ["GET", "POST"] }));
 
 app.use(express.json());
 
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: { origin: process.env.FRONTEND_URL, methods: ["GET", "POST"] }
+  cors: { origin: allowedOrigins, methods: ["GET", "POST"] }
 });
 
 // ===========================
@@ -142,4 +150,5 @@ io.on('connection', (socket) => {
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
   console.log(`\n--- K'artz Backend Chat Server Running on port ${PORT} ---`);
+
 });
